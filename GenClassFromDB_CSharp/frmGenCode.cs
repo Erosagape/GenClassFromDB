@@ -20,9 +20,13 @@ namespace GenClassFromDB_CSharp
 
         private void FrmGenCode_Load(object sender, EventArgs e)
         {
-            txtConnect.Text = Properties.Settings.Default["ConnectionStr"].ToString();
+            SetDefaultVariable();
         }
-
+        private void SetDefaultVariable()
+        {
+            txtConnect.Text = Properties.Settings.Default["ConnectionStr"].ToString();
+            cboType.SelectedIndex = 0;
+        }
         private void Button1_Click(object sender, EventArgs e)
         {
             try
@@ -52,7 +56,14 @@ namespace GenClassFromDB_CSharp
                 {
                     da.Fill(dt);
                     dataGridView1.DataSource = dt;
-                    txtData.Text = ReadStructure(dt);
+                    if (cboType.SelectedIndex == 0)
+                    {
+                        txtData.Text = ReadStructureCS(dt);
+                    }
+                    if(cboType.SelectedIndex == 1)
+                    {
+                        txtData.Text = ReadStructureHTML(dt);
+                    }
                     if (txtData.Text != "")
                     {
                         Clipboard.SetText(txtData.Text, TextDataFormat.UnicodeText);
@@ -65,7 +76,7 @@ namespace GenClassFromDB_CSharp
                 MessageBox.Show(ex.Message);
             }
         }
-        string ReadStructure(DataTable tb)
+        string ReadStructureCS(DataTable tb)
         {
             string strField = "";
             string strLoad = "";
@@ -203,9 +214,9 @@ namespace GenClassFromDB_CSharp
             return success;
 
         }
-        public bool Update()
+        public string Update()
         {
-            bool success;
+            string msg="""";
             try
             {
                 using (SqlConnection conn = new SqlConnection(Properties.Settings.Default." + txtConnectUse.Text + @"))
@@ -230,21 +241,166 @@ namespace GenClassFromDB_CSharp
                                     tb.Rows.Add(row);
                                 }
                                 adapter.Update(tb);
+                                msg=""Save "" + row["""+ txtKey.Text +@"""] +""Complete"";
                             }
                         }
                     }
                 }
-                success = true;
             }
             catch (Exception e)
             {
-                throw e;
+                msg=e.Message;
             }
-            return success;
+            return msg;
         }
+    }
+";
+            strAll += @"
+    //Controllers And Methods
+    public ActionResult "+txtClassName.Text+@"()
+    {            
+        ViewBag.DataList = new "+txtClassName.Text+@"().Read();
+        return View();
+    }
+    public JsonResult Get" + txtClassName.Text+@"()
+    {
+        var v"+txtKey.Text+@" = Request.QueryString[""" + txtKey.Text +@"""] == null ? """" : Request.QueryString[""" + txtKey.Text+@"""].ToString();
+        var data = new "+ txtClassName.Text+@"
+        {
+            "+txtKey.Text+@" = v"+txtKey.Text+ @"
+        };
+        return Json(data.Read(), JsonRequestBehavior.AllowGet);
+    }
+    [HttpPost]
+    public ActionResult Set"+txtClassName.Text+@"("+txtClassName.Text+@" data)
+    {
+        string msg=data.Update();
+        return Content(msg);
+    }
+    public ContentResult Del" +txtClassName.Text+@"()
+    {
+        string html = ""No Data To Delete"";
+        if (Request.QueryString["""+txtKey.Text+@"""] != null)
+        {
+            var data = new "+txtClassName.Text+@"
+            {
+                "+txtKey.Text+@" = Request.QueryString["""+txtKey.Text+@"""].ToString()
+            };
+            if (data.Delete() == true)
+            {
+                html = ""Delete "" + data."+txtKey.Text+@" + "" Complete"";
+            }
+        }            
+        return Content(html);
     }
 ";
             return strAll;
         }
+        string ReadStructureHTML(DataTable tb)
+        {
+            string strAll = "";
+            string strClear = "";
+            string strLoad = "";
+            string strSave = "";
+            int cols = 0;
+            foreach (DataColumn dc in tb.Columns)
+            {
+                if (cols == 0 || (cols % 2) == 0)
+                {
+                    if (cols > 0)
+                    {
+                        strAll += "</div>\r\n";
+                    }
+                    strAll += @"<div class=""row"">"+ "\r\n";
+                }
+                strAll += @"    <div class=""col-sm-6"">" + "\r\n";
+                strAll += @"        " + dc.ColumnName + @"<br/>" + "\r\n";
+                strAll += @"        <div style=""display:flex"">" + "\r\n";
+                strAll += @"            <input type=""text"" class=""form-control"" id=""txt"+ dc.ColumnName+ @""" value="""" />" + "\r\n";
+                strAll += @"        </div>" + "\r\n";
+                strAll += @"    </div>" + "\r\n";
+
+                strClear += "   $('#txt" + dc.ColumnName + @"').val('');" + "\r\n";
+                strSave += "    " + dc.ColumnName + ": $('#txt" + dc.ColumnName + "').val(),\r\n";
+                strLoad += "    $('#txt" + dc.ColumnName + @"').val(data."+ dc.ColumnName +");" + "\r\n";
+                cols += 1;
+            }
+            if (cols > 0)
+            {
+                strAll += @"</div>" + "\r\n";
+            }
+            strAll += @"
+<div style=""display:flex"">
+    <div>
+        <input type=""button"" id=""btnClear"" class=""btn btn-default"" value=""Clear"" onclick=""ClearData()""/>
+    </div>
+    <div>
+        <input type=""button"" id=""btnSave"" class=""btn btn-success"" value=""Save"" onclick=""SaveData()"" />
+    </div>
+    <div>
+        <input type=""button"" id=""btnDelete"" class=""btn btn-danger"" value=""Delete"" onclick=""DeleteData()"" />
+    </div>
+</div>
+";
+            strClear = @"
+    function ClearData(){
+        " + strClear+@"
     }
+    ";
+                strLoad = @"
+    function ReadData(){
+        let v"+txtKey.Text+@"=$('#txt"+txtKey.Text+@"').val();
+        $.get('/" + txtController.Text + @"/Get"+ txtClassName.Text+@"?" + txtKey.Text+@"=' + v"+txtKey.Text+@").done(function(r){
+            if(r.length>0){    
+                let data=r[0];
+                " + strLoad+ @"
+            }
+        });
+    }
+    ";
+                strSave = @"
+    function SaveData(){
+        let obj={
+            "+ strSave+ @"
+        }
+        let jsonText = JSON.stringify({ data: obj });
+        
+        $.ajax({
+            url: ""@Url.Action(""Set"+txtClassName.Text+@""", """ + txtController.Text + @""")"",
+            type: ""POST"",
+            contentType: ""application/json"",
+            data: jsonText,
+            success: function(response) {
+                if (response != null)
+                {
+                    alert(response);
+                    window.location.reload();
+                }
+            },
+            error: function(e) {
+                alert(e.responseText);
+            }
+        });        
+    }
+";
+            strAll += @"
+<script type=""text/javascript"">
+    $('#txt"+txtKey.Text+@"').on('change',function(){
+        ReadData();
+    });
+    " + strClear+ @"
+    " + strLoad + @"
+    " + strSave + @"
+    function DeleteData(){
+        let v" + txtKey.Text + @"=$('#txt" + txtKey.Text + @"').val();
+        $.get('/" + txtController.Text + @"/Del" + txtClassName.Text + @"?" + txtKey.Text + @"=' + v" + txtKey.Text + @").done(function(r){
+            alert(r);
+        });
+    }
+</script>
+";
+            return strAll;
+        }
+    }
+
 }
