@@ -41,11 +41,12 @@
             this.label4 = new System.Windows.Forms.Label();
             this.txtData = new System.Windows.Forms.TextBox();
             this.button2 = new System.Windows.Forms.Button();
-            this.txtTable = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.cboType = new System.Windows.Forms.ComboBox();
             this.label6 = new System.Windows.Forms.Label();
             this.txtController = new System.Windows.Forms.TextBox();
+            this.txtTable = new System.Windows.Forms.ComboBox();
+            this.chkItemNo = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -161,14 +162,6 @@
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.Button2_Click);
             // 
-            // txtTable
-            // 
-            this.txtTable.Location = new System.Drawing.Point(341, 203);
-            this.txtTable.Name = "txtTable";
-            this.txtTable.Size = new System.Drawing.Size(135, 20);
-            this.txtTable.TabIndex = 25;
-            this.txtTable.Text = "Table1";
-            // 
             // label5
             // 
             this.label5.AutoSize = true;
@@ -207,15 +200,35 @@
             this.txtController.TabIndex = 28;
             this.txtController.Text = "Home";
             // 
+            // txtTable
+            // 
+            this.txtTable.FormattingEnabled = true;
+            this.txtTable.Location = new System.Drawing.Point(341, 203);
+            this.txtTable.Name = "txtTable";
+            this.txtTable.Size = new System.Drawing.Size(135, 21);
+            this.txtTable.TabIndex = 29;
+            this.txtTable.SelectedIndexChanged += new System.EventHandler(this.TxtTable_SelectedIndexChanged);
+            // 
+            // chkItemNo
+            // 
+            this.chkItemNo.AutoSize = true;
+            this.chkItemNo.Location = new System.Drawing.Point(272, 186);
+            this.chkItemNo.Name = "chkItemNo";
+            this.chkItemNo.Size = new System.Drawing.Size(60, 17);
+            this.chkItemNo.TabIndex = 30;
+            this.chkItemNo.Text = "ItemNo";
+            this.chkItemNo.UseVisualStyleBackColor = true;
+            // 
             // frmGenCode
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.chkItemNo);
+            this.Controls.Add(this.txtTable);
             this.Controls.Add(this.txtController);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.cboType);
-            this.Controls.Add(this.txtTable);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.txtData);
@@ -254,11 +267,12 @@
         internal System.Windows.Forms.Label label4;
         internal System.Windows.Forms.TextBox txtData;
         private System.Windows.Forms.Button button2;
-        internal System.Windows.Forms.TextBox txtTable;
         internal System.Windows.Forms.Label label5;
         private System.Windows.Forms.ComboBox cboType;
         internal System.Windows.Forms.Label label6;
         internal System.Windows.Forms.TextBox txtController;
+        private System.Windows.Forms.ComboBox txtTable;
+        private System.Windows.Forms.CheckBox chkItemNo;
     }
 }
 

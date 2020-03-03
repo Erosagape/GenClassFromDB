@@ -35,6 +35,12 @@ namespace GenClassFromDB_CSharp
                 {
                     cn.Open();
                     MessageBox.Show("Connected");
+                    DataTable tables = cn.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, new object[] { null, null, null, "TABLE" });
+                    txtTable.Items.Clear();
+                    foreach(DataRow row in tables.Rows)
+                    {
+                        txtTable.Items.Add(row["TABLE_NAME"].ToString());
+                    }
                     cn.Close();
                     button2.Enabled = true;
                 }
@@ -89,47 +95,37 @@ namespace GenClassFromDB_CSharp
                 switch (strType)
                 {
                     case "Double":
-                        strField += "public double " + dc.ColumnName + " { get; set; } \r\n";
-                        strLoad += dc.ColumnName+ String.Format(" = rd.GetDouble(rd.GetOrdinal({0})),\r\n",fldName);
-                        strDefault += "this." + dc.ColumnName + "=0;\r\n";
-                        strSet += @"row["+fldName+"] = this."+dc.ColumnName+ ";\r\n";
+                        strField += "       public double " + dc.ColumnName + " { get; set; } \r\n";
+                        strLoad += "                " +dc.ColumnName+ String.Format(" = Main.CDbl(rd[{0}]),\r\n",fldName);
+                        strDefault += "         this." + dc.ColumnName + "=0;\r\n";
+                        strSet += @"            row["+fldName+"] = Main.GetDBDouble(this."+dc.ColumnName+ ");\r\n";
                         break;
                     case "Date":
-                        strField += "public DateTime " + dc.ColumnName + " { get; set; } \r\n";
-                        strLoad += dc.ColumnName + String.Format(" = rd.GetDateTime(rd.GetOrdinal({0})),\r\n", fldName);
-                        strDefault += "this." + dc.ColumnName + "=default(DateTime);\r\n";
-                        strSet += @"row[" + fldName + "] = this." + dc.ColumnName + @" == null? default(DateTime) : this." + dc.ColumnName + ";\r\n";
-                        break;
                     case "DateTime":
-                        strField += "public DateTime " + dc.ColumnName + " { get; set; } \r\n";
-                        strLoad += dc.ColumnName + String.Format(" = rd.GetDateTime(rd.GetOrdinal({0})),\r\n", fldName);
-                        strDefault += "this." + dc.ColumnName + "=default(DateTime);\r\n";
-                        strSet += @"row[" + fldName + "] = this." + dc.ColumnName + @" == null? default(DateTime) : this." + dc.ColumnName + ";\r\n";
+                        strField += "       public DateTime " + dc.ColumnName + " { get; set; } \r\n";
+                        strLoad += "                " + dc.ColumnName + String.Format(" = Main.CDate(rd[{0}]),\r\n", fldName);
+                        strDefault += "         this." + dc.ColumnName + "=default(DateTime);\r\n";
+                        strSet += @"            row[" + fldName + "] = Main.GetDBDate(this." + dc.ColumnName + ");\r\n";
                         break;
                     case "Int32":
-                        strField += "public int " + dc.ColumnName + " { get; set; } \r\n";
-                        strLoad += dc.ColumnName + String.Format(" = rd.GetInt32(rd.GetOrdinal({0})),\r\n", fldName);
-                        strDefault += "this." + dc.ColumnName + "=0;\r\n";
-                        strSet += @"row[" + fldName + "] = this." + dc.ColumnName + ";\r\n";
-                        break;
                     case "Integer":
-                        strField += "public int " + dc.ColumnName + " { get; set; } \r\n";
-                        strLoad += dc.ColumnName + String.Format(" = rd.GetInt32(rd.GetOrdinal({0})),\r\n", fldName);
-                        strDefault += "this." + dc.ColumnName + "=0;\r\n";
-                        strSet += @"row[" + fldName + "] = this." + dc.ColumnName + ";\r\n";
+                        strField += "       public int " + dc.ColumnName + " { get; set; } \r\n";
+                        strLoad += "                " + dc.ColumnName + String.Format(" = Main.CInt(rd[{0}]),\r\n", fldName);
+                        strDefault += "         this." + dc.ColumnName + "=0;\r\n";
+                        strSet += @"            row[" + fldName + "] = Main.GetDBInteger(this." + dc.ColumnName + ");\r\n";
                         break;
                     default:
-                        strField += "public string " + dc.ColumnName + " { get; set; } \r\n";
-                        strLoad += dc.ColumnName + String.Format(" = rd.GetString(rd.GetOrdinal({0})),\r\n", fldName);
-                        strDefault += "this." + dc.ColumnName + "="+@""""""+";\r\n";
-                        strSet += @"row[" + fldName + "] = this." + dc.ColumnName + @" == null? """" : this." + dc.ColumnName + ";\r\n";
+                        strField += "       public string " + dc.ColumnName + " { get; set; } \r\n";
+                        strLoad += "                " + dc.ColumnName + String.Format(" = Main.CStr(rd[{0}]),\r\n", fldName);
+                        strDefault += "         this." + dc.ColumnName + "="+@""""""+";\r\n";
+                        strSet += @"            row[" + fldName + "] = Main.GetDBString(this." + dc.ColumnName + ");\r\n";
                         break;
                 }
             }
             string strAll = @"
     public class " + txtClassName.Text + @" : ITableInterface
     {
-        " + strField + @"        
+" + strField + @"        
         public " + txtClassName.Text + @"()
         {
             Create();
@@ -138,13 +134,34 @@ namespace GenClassFromDB_CSharp
         {
             " + txtClassName.Text + @" row = new " + txtClassName.Text + @"
             {
-                " + strLoad + @"
+" + strLoad + @"
             };
             return row;
         }
+        public void AddNew()
+        {
+" + (chkItemNo.Checked ? @"
+            var vNumber = 1;
+            var vLastNo = Main.GetValueSQL(String.Format(""SELECT Max(ItemNo) as ItemNo FROM Acc_GLDetail WHERE GLRefNo = '{0}'"", this.GLRefNo));
+            if (vLastNo != """")
+            {
+                vNumber = Convert.ToInt32(vLastNo) + 1;
+            }
+            this.ItemNo = vNumber;
+": @"
+            var vFormat = ""____"";
+            var vNumber = 1;
+            var vLastNo = Main.GetValueSQL(String.Format(""SELECT Max("+ txtKey.Text +@") FROM "+txtTable.Text+@" WHERE "+txtKey.Text + @" Like'{0}'"", vFormat));
+            if (vLastNo != """")
+            {
+                vNumber = Convert.ToInt32(vLastNo.PadRight(4)) + 1;
+            }
+            this." + txtKey.Text + @" = vNumber.ToString(""0000"");
+            ") +@"
+        }
         private void SetData(ref DataRow row)
         {
-            " + strSet + @"
+" + strSet + @"
         }
         public List<" + txtClassName.Text + @"> Read()
         {
@@ -174,6 +191,7 @@ namespace GenClassFromDB_CSharp
         public string GetSQLWhere()
         {
             string sql = (this." + txtKey.Text + @" != """" ? String.Format("" WHERE " + txtKey.Text + @"='{0}'"", this." + txtKey.Text + @") : """");
+            " + (chkItemNo.Checked ? @"sql +=String.Format("" AND ItemNo={0}"",this.ItemNo); ":"") +@"
             return sql;
         }
         public string GetSQLSelect()
@@ -188,7 +206,7 @@ namespace GenClassFromDB_CSharp
         }
         public void Create()
         {
-            " + strDefault + @"
+" + strDefault + @"
         }
         public bool Delete()
         {
@@ -241,7 +259,7 @@ namespace GenClassFromDB_CSharp
                                     tb.Rows.Add(row);
                                 }
                                 adapter.Update(tb);
-                                msg=""Save "" + row["""+ txtKey.Text +@"""] +""Complete"";
+                                msg=""Save "" + row["""+ txtKey.Text +@"""] +"" Complete!"";
                             }
                         }
                     }
@@ -265,15 +283,20 @@ namespace GenClassFromDB_CSharp
     public JsonResult Get" + txtClassName.Text+@"()
     {
         var v"+txtKey.Text+@" = Request.QueryString[""" + txtKey.Text +@"""] == null ? """" : Request.QueryString[""" + txtKey.Text+@"""].ToString();
+        "+ (chkItemNo.Checked ? @"var vItemNo=Request.QueryString[""ItemNo""];":"") +@"
         var data = new "+ txtClassName.Text+@"
         {
             "+txtKey.Text+@" = v"+txtKey.Text+ @"
+            "+ (chkItemNo.Checked ? @",ItemNo=vItemNo" : "") + @"
         };
         return Json(data.Read(), JsonRequestBehavior.AllowGet);
     }
     [HttpPost]
     public ActionResult Set"+txtClassName.Text+@"("+txtClassName.Text+@" data)
     {
+        if(data."+ txtKey.Text +@"==null) {
+            data.AddNew();
+        }
         string msg=data.Update();
         return Content(msg);
     }
@@ -284,11 +307,12 @@ namespace GenClassFromDB_CSharp
         {
             var data = new "+txtClassName.Text+@"
             {
-                "+txtKey.Text+@" = Request.QueryString["""+txtKey.Text+@"""].ToString()
+                "+txtKey.Text+@" = Request.QueryString["""+txtKey.Text+@"""].ToString(),
+                "+ (chkItemNo.Checked ? @"ItemNo=Request.QueryString[""ItemNo""];" : "") + @"
             };
             if (data.Delete() == true)
             {
-                html = ""Delete "" + data."+txtKey.Text+@" + "" Complete"";
+                html = ""Delete "" + data."+txtKey.Text + (chkItemNo.Checked ? @"+""#""+ data.ItemNo " : "") + @" + "" Complete"";
             }
         }            
         return Content(html);
@@ -302,6 +326,9 @@ namespace GenClassFromDB_CSharp
             string strClear = "";
             string strLoad = "";
             string strSave = "";
+            string strListH = @"<table class=""table table-responsive"">";
+            string strListD = "";
+            strListH += "\r\n   <thead>\r\n        <tr>";
             int cols = 0;
             foreach (DataColumn dc in tb.Columns)
             {
@@ -313,22 +340,56 @@ namespace GenClassFromDB_CSharp
                     }
                     strAll += @"<div class=""row"">"+ "\r\n";
                 }
+                strListH += "\r\n           <th>" + dc.ColumnName+ "</th>";
+                strListD += "\r\n                   <td>@item." + dc.ColumnName + "</td>";
+
                 strAll += @"    <div class=""col-sm-6"">" + "\r\n";
                 strAll += @"        " + dc.ColumnName + @"<br/>" + "\r\n";
                 strAll += @"        <div style=""display:flex"">" + "\r\n";
-                strAll += @"            <input type=""text"" class=""form-control"" id=""txt"+ dc.ColumnName+ @""" value="""" />" + "\r\n";
+
+                string strType = dc.DataType.FullName.ToString().Replace("System.", "");
+                switch (strType)
+                {
+                    case "Date":
+                    case "DateTime":
+                        strAll += @"            <input type=""date"" class=""form-control"" id=""txt" + dc.ColumnName + @""" value="""" />" + "\r\n";
+                        strClear += "       $('#txt" + dc.ColumnName + @"').val(new Date());" + "\r\n";
+                        break;
+                    case "Int32":
+                    case "Int16":
+                    case "Integer":
+                    case "Double":
+                        strAll += @"            <input type=""number"" class=""form-control"" id=""txt" + dc.ColumnName + @""" value="""" />" + "\r\n";
+                        strClear += "       $('#txt" + dc.ColumnName + @"').val('0');" + "\r\n";
+                        break;
+                    default:
+                        strAll += @"            <input type=""text"" class=""form-control"" id=""txt" + dc.ColumnName + @""" value="""" />" + "\r\n";
+                        strClear += "       $('#txt" + dc.ColumnName + @"').val('');" + "\r\n";
+                        break;
+                }
                 strAll += @"        </div>" + "\r\n";
                 strAll += @"    </div>" + "\r\n";
 
-                strClear += "   $('#txt" + dc.ColumnName + @"').val('');" + "\r\n";
-                strSave += "    " + dc.ColumnName + ": $('#txt" + dc.ColumnName + "').val(),\r\n";
-                strLoad += "    $('#txt" + dc.ColumnName + @"').val(data."+ dc.ColumnName +");" + "\r\n";
+                strSave += "            " + dc.ColumnName + ": $('#txt" + dc.ColumnName + "').val(),\r\n";
+                strLoad += "                $('#txt" + dc.ColumnName + @"').val(data."+ dc.ColumnName +");" + "\r\n";
                 cols += 1;
             }
             if (cols > 0)
             {
                 strAll += @"</div>" + "\r\n";
             }
+            strListH += "\r\n       </tr>\r\n   </thead>\r\n";
+            strListH += @"
+    <tbody>
+        @foreach (var item in ViewBag.DataList)
+        {
+            <tr>
+"+ strListD + @"
+            </tr>
+        }
+    </tbody>
+";
+            strListH += "</table>\r\n";
             strAll += @"
 <div style=""display:flex"">
     <div>
@@ -344,16 +405,18 @@ namespace GenClassFromDB_CSharp
 ";
             strClear = @"
     function ClearData(){
-        " + strClear+@"
+" + strClear+@"
     }
     ";
                 strLoad = @"
     function ReadData(){
-        let v"+txtKey.Text+@"=$('#txt"+txtKey.Text+@"').val();
+        let v"+txtKey.Text+@"=$('#txt"+txtKey.Text+@"').val();        
         $.get('/" + txtController.Text + @"/Get"+ txtClassName.Text+@"?" + txtKey.Text+@"=' + v"+txtKey.Text+@").done(function(r){
             if(r.length>0){    
                 let data=r[0];
-                " + strLoad+ @"
+" + strLoad+ @"
+            } else {
+                alert('Data Not Found');
             }
         });
     }
@@ -361,7 +424,7 @@ namespace GenClassFromDB_CSharp
                 strSave = @"
     function SaveData(){
         let obj={
-            "+ strSave+ @"
+"+ strSave+ @"
         }
         let jsonText = JSON.stringify({ data: obj });
         
@@ -383,6 +446,7 @@ namespace GenClassFromDB_CSharp
         });        
     }
 ";
+            strAll += strListH;
             strAll += @"
 <script type=""text/javascript"">
     $('#txt"+txtKey.Text+@"').on('change',function(){
@@ -395,12 +459,19 @@ namespace GenClassFromDB_CSharp
         let v" + txtKey.Text + @"=$('#txt" + txtKey.Text + @"').val();
         $.get('/" + txtController.Text + @"/Del" + txtClassName.Text + @"?" + txtKey.Text + @"=' + v" + txtKey.Text + @").done(function(r){
             alert(r);
+            window.location.reload();
         });
     }
 </script>
 ";
             return strAll;
         }
+
+        private void TxtTable_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            txtSQL.Text = "SELECT * FROM " + txtTable.Items[txtTable.SelectedIndex];
+        }
+
     }
 
 }
