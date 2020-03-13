@@ -52,7 +52,7 @@ namespace GenClassFromDB_CSharp
             }
 
         }
-
+        
         private void Button2_Click(object sender, EventArgs e)
         {
             try
@@ -123,6 +123,8 @@ namespace GenClassFromDB_CSharp
                 }
             }
             string strAll = @"
+    using System.Data;
+    using System.Data.SqlClient;
     public class " + txtClassName.Text + @" : ITableInterface
     {
 " + strField + @"        
@@ -142,13 +144,13 @@ namespace GenClassFromDB_CSharp
         {
 " + (chkItemNo.Checked ? @"
             var vNumber = 1;
-            var vLastNo = Main.GetValueSQL(String.Format(""SELECT Max(ItemNo) as ItemNo FROM Acc_GLDetail WHERE GLRefNo = '{0}'"", this.GLRefNo));
+            var vLastNo = Main.GetValueSQL(String.Format(""SELECT Max(ItemNo) as ItemNo FROM " + txtTable.Text + @" WHERE " + txtKey.Text + @" = '{0}'"", this." + txtKey.Text + @"));
             if (vLastNo != """")
             {
                 vNumber = Convert.ToInt32(vLastNo) + 1;
             }
             this.ItemNo = vNumber;
-": @"
+" : @"
             var vFormat = ""____"";
             var vNumber = 1;
             var vLastNo = Main.GetValueSQL(String.Format(""SELECT Max("+ txtKey.Text +@") FROM "+txtTable.Text+@" WHERE "+txtKey.Text + @" Like'{0}'"", vFormat));
@@ -191,7 +193,7 @@ namespace GenClassFromDB_CSharp
         public string GetSQLWhere()
         {
             string sql = (this." + txtKey.Text + @" != """" ? String.Format("" WHERE " + txtKey.Text + @"='{0}'"", this." + txtKey.Text + @") : """");
-            " + (chkItemNo.Checked ? @"sql +=String.Format("" AND ItemNo={0}"",this.ItemNo); ":"") +@"
+            " + (chkItemNo.Checked ? @"if(this.ItemNo>0) { sql +=String.Format("" AND ItemNo={0}"",this.ItemNo); }":"") +@"
             return sql;
         }
         public string GetSQLSelect()
@@ -277,45 +279,60 @@ namespace GenClassFromDB_CSharp
     //Controllers And Methods
     public ActionResult "+txtClassName.Text+@"()
     {            
-        ViewBag.DataList = new "+txtClassName.Text+@"().Read();
-        return View();
+        if(IsLogin) 
+        {
+            ViewBag.DataList = new "+txtClassName.Text+ @"().Read();        
+        }
+        return GetView('" + txtClassName.Text +@"');
     }
     public JsonResult Get" + txtClassName.Text+@"()
     {
-        var v"+txtKey.Text+@" = Request.QueryString[""" + txtKey.Text +@"""] == null ? """" : Request.QueryString[""" + txtKey.Text+@"""].ToString();
-        "+ (chkItemNo.Checked ? @"var vItemNo=Request.QueryString[""ItemNo""];":"") +@"
-        var data = new "+ txtClassName.Text+@"
+        if(IsLogin)
         {
-            "+txtKey.Text+@" = v"+txtKey.Text+ @"
-            "+ (chkItemNo.Checked ? @",ItemNo=vItemNo" : "") + @"
-        };
-        return Json(data.Read(), JsonRequestBehavior.AllowGet);
+            var v"+txtKey.Text+@" = Request.QueryString[""" + txtKey.Text +@"""] == null ? """" : Request.QueryString[""" + txtKey.Text+@"""].ToString();
+            "+ (chkItemNo.Checked ? @"var vItemNo=Request.QueryString[""ItemNo""] == null ? 0 : Convert.ToInt32(Request.QueryString[""ItemNo""].ToString());":"") +@"
+            var data = new "+ txtClassName.Text+@"
+            {
+                "+txtKey.Text+@" = v"+txtKey.Text+ @"
+                "+ (chkItemNo.Checked ? @",ItemNo=vItemNo" : "") + @"
+            };
+            return GetJson(data.Read());
+        }
+        return GetJson(null);
     }
     [HttpPost]
     public ActionResult Set"+txtClassName.Text+@"("+txtClassName.Text+@" data)
     {
-        if(data."+ txtKey.Text +@"==null) {
-            data.AddNew();
-        }
-        string msg=data.Update();
-        return Content(msg);
-    }
-    public ContentResult Del" +txtClassName.Text+@"()
-    {
-        string html = ""No Data To Delete"";
-        if (Request.QueryString["""+txtKey.Text+@"""] != null)
+        if(IsLogin)
         {
-            var data = new "+txtClassName.Text+@"
-            {
-                "+txtKey.Text+@" = Request.QueryString["""+txtKey.Text+@"""].ToString(),
-                "+ (chkItemNo.Checked ? @"ItemNo=Request.QueryString[""ItemNo""];" : "") + @"
-            };
-            if (data.Delete() == true)
-            {
-                html = ""Delete "" + data."+txtKey.Text + (chkItemNo.Checked ? @"+""#""+ data.ItemNo " : "") + @" + "" Complete"";
+            if(data."+ (chkItemNo.Checked? "ItemNo==0" : txtKey.Text +@"==null") + @") {
+                data.AddNew();
             }
-        }            
-        return Content(html);
+            string msg=data.Update();
+            return GetContent(msg);
+        }
+        return GetContent("");
+    }
+    public ContentResult Del" + txtClassName.Text+@"()
+    {
+        if(IsLogin)
+        {
+            string html = ""No Data To Delete"";
+            if (Request.QueryString["""+txtKey.Text+@"""] != null)
+            {
+                var data = new "+txtClassName.Text+@"
+                {
+                    "+txtKey.Text+@" = Request.QueryString["""+txtKey.Text+@"""].ToString(),
+                    "+ (chkItemNo.Checked ? @"ItemNo=Convert.ToInt32(Request.QueryString[""ItemNo""].ToString())" : "") + @"
+                };
+                if (data.Delete() == true)
+                {
+                    html = ""Delete "" + data."+txtKey.Text + (chkItemNo.Checked ? @"+""#""+ data.ItemNo " : "") + @" + "" Complete"";
+                }
+            }            
+            return GetContent(html);
+        }
+        return GetContent("");
     }
 ";
             return strAll;
@@ -341,8 +358,13 @@ namespace GenClassFromDB_CSharp
                     strAll += @"<div class=""row"">"+ "\r\n";
                 }
                 strListH += "\r\n           <th>" + dc.ColumnName+ "</th>";
-                strListD += "\r\n                   <td>@item." + dc.ColumnName + "</td>";
-
+                if (txtKey.Text == dc.ColumnName)
+                {
+                    strListD += "\r\n                   "+@"<td><a onclick=""SetData('@item."+ dc.ColumnName + (chkItemNo.Checked ? "',@item.ItemNo":"'")+ @")"">" + "@item." + dc.ColumnName + "</a></td>";
+                } else
+                {
+                    strListD += "\r\n                   <td>@item." + dc.ColumnName + "</td>";
+                }
                 strAll += @"    <div class=""col-sm-6"">" + "\r\n";
                 strAll += @"        " + dc.ColumnName + @"<br/>" + "\r\n";
                 strAll += @"        <div style=""display:flex"">" + "\r\n";
@@ -410,8 +432,9 @@ namespace GenClassFromDB_CSharp
     ";
                 strLoad = @"
     function ReadData(){
-        let v"+txtKey.Text+@"=$('#txt"+txtKey.Text+@"').val();        
-        $.get('/" + txtController.Text + @"/Get"+ txtClassName.Text+@"?" + txtKey.Text+@"=' + v"+txtKey.Text+@").done(function(r){
+        let v"+txtKey.Text+@"=$('#txt"+txtKey.Text+@"').val();  
+        " + (chkItemNo.Checked? "let vItemNo=$('#txtItemNo').val();":"") + @"
+        $.get('/" + txtController.Text + @"/Get"+ txtClassName.Text+@"?" + txtKey.Text+@"=' + v"+txtKey.Text+ (chkItemNo.Checked ? "&ItemNo='+ vItemNo":"")+ @").done(function(r){
             if(r.length>0){    
                 let data=r[0];
 " + strLoad+ @"
@@ -434,7 +457,7 @@ namespace GenClassFromDB_CSharp
             contentType: ""application/json"",
             data: jsonText,
             success: function(response) {
-                if (response != null)
+                if (response !== "")
                 {
                     alert(response);
                     window.location.reload();
@@ -449,17 +472,24 @@ namespace GenClassFromDB_CSharp
             strAll += strListH;
             strAll += @"
 <script type=""text/javascript"">
-    $('#txt"+txtKey.Text+@"').on('change',function(){
+    $('#txt"+ (chkItemNo.Checked ? "ItemNo": txtKey.Text) +@"').on('change',function(){
         ReadData();
     });
+    function SetData(id"+ (chkItemNo.Checked? ",no":"")+@") {
+        $('#txt"+ txtKey.Text +@"').val(id);
+        " + (chkItemNo.Checked ? "$('#txtItemNo').val(no);":"")+ @"
+        ReadData();
+    }
     " + strClear+ @"
     " + strLoad + @"
     " + strSave + @"
     function DeleteData(){
         let v" + txtKey.Text + @"=$('#txt" + txtKey.Text + @"').val();
         $.get('/" + txtController.Text + @"/Del" + txtClassName.Text + @"?" + txtKey.Text + @"=' + v" + txtKey.Text + @").done(function(r){
-            alert(r);
-            window.location.reload();
+            if(r!=="") {
+                alert(r);
+                window.location.reload();
+            }
         });
     }
 </script>
