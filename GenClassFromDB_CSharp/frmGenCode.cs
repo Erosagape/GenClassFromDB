@@ -88,10 +88,17 @@ namespace GenClassFromDB_CSharp
             string strLoad = "";
             string strDefault = "";
             string strSet = "";
+            string strRead = "";
+            string strSave = "";
+            string strClear = "";
             foreach(DataColumn dc in tb.Columns)
             {
                 string strType = dc.DataType.FullName.ToString().Replace("System.","");
                 string fldName = @"""" + dc.ColumnName + @"""";
+                if (dc.ColumnName != txtKey.Text)
+                {
+                    strClear += "        txt" + dc.ColumnName + @".Text="""";" + " \r\n";
+                }
                 switch (strType)
                 {
                     case "Double":
@@ -99,6 +106,8 @@ namespace GenClassFromDB_CSharp
                         strLoad += "                " +dc.ColumnName+ String.Format(" = Main.CDbl(rd[{0}]),\r\n",fldName);
                         strDefault += "         this." + dc.ColumnName + "=0;\r\n";
                         strSet += @"            row["+fldName+"] = Main.GetDBDouble(this."+dc.ColumnName+ ");\r\n";
+                        strRead += "        txt" + dc.ColumnName + ".Text=data[0]." + dc.ColumnName + ".ToString(); \r\n";
+                        strSave += "        data." + dc.ColumnName + "=Main.CDbl(txt" + dc.ColumnName + ".Text); \r\n";
                         break;
                     case "Date":
                     case "DateTime":
@@ -106,6 +115,8 @@ namespace GenClassFromDB_CSharp
                         strLoad += "                " + dc.ColumnName + String.Format(" = Main.CDate(rd[{0}]),\r\n", fldName);
                         strDefault += "         this." + dc.ColumnName + "=default(DateTime);\r\n";
                         strSet += @"            row[" + fldName + "] = Main.GetDBDate(this." + dc.ColumnName + ");\r\n";
+                        strRead += "        txt" + dc.ColumnName + ".Text=data[0]." + dc.ColumnName + ".ToString(); \r\n";
+                        strSave += "        data." + dc.ColumnName + "=Main.CDate(txt" + dc.ColumnName + ".Text); \r\n";
                         break;
                     case "Int32":
                     case "Integer":
@@ -113,18 +124,26 @@ namespace GenClassFromDB_CSharp
                         strLoad += "                " + dc.ColumnName + String.Format(" = Main.CInt(rd[{0}]),\r\n", fldName);
                         strDefault += "         this." + dc.ColumnName + "=0;\r\n";
                         strSet += @"            row[" + fldName + "] = Main.GetDBInteger(this." + dc.ColumnName + ");\r\n";
+                        strRead += "        txt" + dc.ColumnName + ".Text=data[0]." + dc.ColumnName + ".ToString(); \r\n";
+                        strSave += "        data." + dc.ColumnName + "=Main.CInt(txt" + dc.ColumnName + ".Text); \r\n";
                         break;
                     default:
                         strField += "       public string " + dc.ColumnName + " { get; set; } \r\n";
                         strLoad += "                " + dc.ColumnName + String.Format(" = Main.CStr(rd[{0}]),\r\n", fldName);
                         strDefault += "         this." + dc.ColumnName + "="+@""""""+";\r\n";
                         strSet += @"            row[" + fldName + "] = Main.GetDBString(this." + dc.ColumnName + ");\r\n";
+                        strRead += "        txt" + dc.ColumnName + ".Text=data[0]." + dc.ColumnName + ".ToString(); \r\n";
+                        strSave += "        data." + dc.ColumnName + "=txt" + dc.ColumnName + ".Text; \r\n";
                         break;
                 }
             }
             string strAll = @"
-    using System.Data;
-    using System.Data.SqlClient;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+namespace Models 
+{
     public class " + txtClassName.Text + @" : ITableInterface
     {
 " + strField + @"        
@@ -274,10 +293,49 @@ namespace GenClassFromDB_CSharp
             return msg;
         }
     }
+}
 ";
             strAll += @"
+    //Sample Using class
+    public void ClearData() {
+"+strClear+@"
+        "+ (chkItemNo.Checked?"txtItemNo.Text=0;\r\n":"") + @"
+    }
+    public void RefreshGrid() {
+        var data= new " + txtClassName.Text + @"().Read().ToList();
+        dataGridView1.DataSource=data;
+    }
+    public void DeleteData() {
+        var v" + txtKey.Text + @" = txt" + txtKey.Text + @".Text;
+        " + (chkItemNo.Checked ? @"var vItemNo=Main.CInt(txtItemNo.Text);" : "") + @"
+        var chk = new " + txtClassName.Text + @"
+        {
+            " + txtKey.Text + @" = v" + txtKey.Text + @"
+            " + (chkItemNo.Checked ? @",ItemNo=vItemNo" : "") + @"
+        }.Delete();
+        if(chk) {
+            MessageBox.Show(""Delete Complete!"");
+        }
+    }
+    public void LoadData() {
+        var v" + txtKey.Text + @" = txt" + txtKey.Text + @".Text;
+        " + (chkItemNo.Checked ? @"var vItemNo=txtItemNo.Text;" : "") + @"
+        var data = new " + txtClassName.Text + @"
+        {
+            " + txtKey.Text + @" = v" + txtKey.Text + @"
+            " + (chkItemNo.Checked ? @",ItemNo=vItemNo" : "") + @"
+        }.Read();
+        if(data.Count>0) {
+" + strRead + @"
+        }
+    }
+    public void SaveData() {
+        var data=new " + txtClassName.Text + @"();
+" + strSave +@"
+        data.Update();
+    }
     //Controllers And Methods
-    public ActionResult "+txtClassName.Text+@"()
+    public ActionResult " + txtClassName.Text+@"()
     {            
         if(IsLogin) 
         {
