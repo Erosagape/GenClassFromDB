@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="ConnectionStr" Type="System.String" Scope="User">
-      <Value Profile="(Default)">Provider=SQLOLEDB.1;Persist security info=True;Integrated Security=SSPI;Initial Catalog=acc_web;Data Source=.\SQLEXPRESS</Value>
+      <Value Profile="(Default)">Provider=SQLOLEDB.1;Persist security info=False;Initial Catalog=weblicense;Data Source=DEVSERVER;user id=sa;Password='9t;yogm8';</Value>
     </Setting>
   </Settings>
 </SettingsFile>

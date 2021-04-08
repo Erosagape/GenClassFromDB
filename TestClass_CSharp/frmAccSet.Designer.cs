@@ -57,6 +57,7 @@
             this.txtAccSetCode.Name = "txtAccSetCode";
             this.txtAccSetCode.Size = new System.Drawing.Size(121, 21);
             this.txtAccSetCode.TabIndex = 1;
+            this.txtAccSetCode.SelectedIndexChanged += new System.EventHandler(this.TxtAccSetCode_SelectedIndexChanged);
             this.txtAccSetCode.Validated += new System.EventHandler(this.TxtAccSetCode_Validated);
             // 
             // txtAccSetName

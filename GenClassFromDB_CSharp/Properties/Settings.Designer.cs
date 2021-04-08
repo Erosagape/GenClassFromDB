@@ -12,7 +12,7 @@ namespace GenClassFromDB_CSharp.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.1.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.8.1.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -25,8 +25,8 @@ namespace GenClassFromDB_CSharp.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Provider=SQLOLEDB.1;Persist security info=True;Integrated Security=SSPI;Initial C" +
-            "atalog=acc_web;Data Source=.\\SQLEXPRESS")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Provider=SQLOLEDB.1;Persist security info=False;Initial Catalog=weblicense;Data S" +
+            "ource=DEVSERVER;user id=sa;Password=\'9t;yogm8\';")]
         public string ConnectionStr {
             get {
                 return ((string)(this["ConnectionStr"]));

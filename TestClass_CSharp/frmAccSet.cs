@@ -123,5 +123,9 @@ namespace TestClass_CSharp
             }
         }
 
+        private void TxtAccSetCode_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }

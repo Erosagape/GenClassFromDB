@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace TestClass_CSharp
+namespace TestMySQL
 {
     static class Program
     {
@@ -15,7 +16,7 @@ namespace TestClass_CSharp
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new frmStockMas());
+            Application.Run(new frmWebUsers());
         }
     }
 }

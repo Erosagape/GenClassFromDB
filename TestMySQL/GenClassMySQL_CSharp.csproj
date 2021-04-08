@@ -4,12 +4,13 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{AFE36E64-FEB0-4CBD-B902-11A07EEE5EEB}</ProjectGuid>
+    <ProjectGuid>{D0218F40-819A-4F71-A8AD-0739FD18C8BD}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>TestClass_CSharp</RootNamespace>
-    <AssemblyName>TestClass_CSharp</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <RootNamespace>TestMySQL</RootNamespace>
+    <AssemblyName>TestMySQL</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -32,52 +33,63 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="MySql.Data, Version=6.6.5.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CGLSet.cs" />
-    <Compile Include="CGLSetItem.cs" />
-    <Compile Include="CLocation.cs" />
-    <Compile Include="CStockHeader.cs" />
-    <Compile Include="CWarehouse.cs" />
-    <Compile Include="CWarehouseType.cs" />
-    <Compile Include="frmAccSet.cs">
+    <Compile Include="CDB.cs" />
+    <Compile Include="CMMSCustomers.cs" />
+    <Compile Include="CTariffClass.cs" />
+    <Compile Include="CWebUsers.cs" />
+    <Compile Include="frmGemClass.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="frmAccSet.Designer.cs">
-      <DependentUpon>frmAccSet.cs</DependentUpon>
+    <Compile Include="frmGemClass.Designer.cs">
+      <DependentUpon>frmGemClass.cs</DependentUpon>
     </Compile>
-    <Compile Include="frmAccSetItem.cs">
+    <Compile Include="frmMMSCustomers.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="frmAccSetItem.Designer.cs">
-      <DependentUpon>frmAccSetItem.cs</DependentUpon>
+    <Compile Include="frmMMSCustomers.Designer.cs">
+      <DependentUpon>frmMMSCustomers.cs</DependentUpon>
     </Compile>
-    <Compile Include="frmStockMas.cs">
+    <Compile Include="frmWebUsers.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="frmStockMas.Designer.cs">
-      <DependentUpon>frmStockMas.cs</DependentUpon>
+    <Compile Include="frmWebUsers.Designer.cs">
+      <DependentUpon>frmWebUsers.cs</DependentUpon>
     </Compile>
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Main.cs" />
+    <Compile Include="frmTariff.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmTariff.Designer.cs">
+      <DependentUpon>frmTariff.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="frmAccSet.resx">
-      <DependentUpon>frmAccSet.cs</DependentUpon>
+    <EmbeddedResource Include="frmGemClass.resx">
+      <DependentUpon>frmGemClass.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="frmAccSetItem.resx">
-      <DependentUpon>frmAccSetItem.cs</DependentUpon>
+    <EmbeddedResource Include="frmMMSCustomers.resx">
+      <DependentUpon>frmMMSCustomers.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="frmStockMas.resx">
-      <DependentUpon>frmStockMas.cs</DependentUpon>
+    <EmbeddedResource Include="frmTariff.resx">
+      <DependentUpon>frmTariff.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmWebUsers.resx">
+      <DependentUpon>frmWebUsers.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -88,7 +100,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <None Include="app.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -98,6 +109,9 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
