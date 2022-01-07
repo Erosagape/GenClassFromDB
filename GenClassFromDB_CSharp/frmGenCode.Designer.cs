@@ -132,7 +132,7 @@
             this.txtConnectUse.Name = "txtConnectUse";
             this.txtConnectUse.Size = new System.Drawing.Size(126, 20);
             this.txtConnectUse.TabIndex = 19;
-            this.txtConnectUse.Text = "JobMasConn";
+            this.txtConnectUse.Text = "Properties.Settings.Default.MainConnection";
             // 
             // label4
             // 

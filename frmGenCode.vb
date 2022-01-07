@@ -65,8 +65,10 @@ Public Class frmGenCode
             If dc.ColumnName.IndexOf("date", StringComparison.InvariantCultureIgnoreCase) = dc.ColumnName.Length - 4 And dc.ColumnName.Length > 4 Then
                 strType = "Date"
             End If
-            strHtml &= vbCrLf & vbTab & "<div class=""col-sm-1"">"
-            strHtml &= vbCrLf & "" & dc.ColumnName & " :<br/><div style=""display:flex"">"
+            strHtml &= vbCrLf & vbTab & "<div class=""row"">"
+            strHtml &= vbCrLf & vbTab & "<div class=""col-sm-4"">"
+            strHtml &= vbCrLf & "" & dc.ColumnName & vbCrLf & " :</div>"
+            strHtml &= vbCrLf & "<div class=""col-sm-8"">"
             Select Case strType
                 Case "Double"
                     strPrivate &= "Private m_" & dc.ColumnName & " as Double"
@@ -339,7 +341,7 @@ Public Class frmGenCode
         End If
         If CheckBox1.Checked = True Then
             strAll = strAll & vbCrLf & "<!-- HTML CONTROLS -->"
-            strAll = strAll & vbCrLf & "<div id=""dvForm"" class=""row"">"
+            strAll = strAll & vbCrLf & "<div id=""dvForm"">"
             strAll = strAll & vbCrLf & vbTab & strHtml
             strAll = strAll & vbCrLf & "</div>"
             strAll = strAll & vbCrLf & "<div id=""dvCommand"">"
@@ -353,7 +355,7 @@ Public Class frmGenCode
             <a href=""#"" class=""btn btn-danger"" id=""btnDelete"" onclick=""DeleteData()"">
                 <i class=""fa fa-lg fa-trash""></i>&nbsp;<b>Delete</b>
             </a>
-            <a href=""#"" class=""btn btn-primary"" id=""btnSearch"" onclick=""SearchData()"">
+            <a href=""#"" class=""btn btn-primary"" id=""btnSearch"" onclick=""SearchData('branch')"">
                 <i class=""fa fa-lg fa-filter""></i>&nbsp;<b>Search</b>
             </a>
 "
@@ -441,9 +443,12 @@ Public Class frmGenCode
     function SearchData(type) {
         switch (type) {
             case 'branch':
-                SetGridBranch(path, '#tbBranch', '#frmSearchBranch', ReadData);
+                SetGridBranch(path, '#tbBranch', '#frmSearchBranch', ReadBranch);
                 break;
         }
+    }
+    function ReadBranch(dr) {
+        $('#txtBranchCode').val(dr.BranchCode);
     }
 "
             strAll = strAll & vbCrLf & "</script>"

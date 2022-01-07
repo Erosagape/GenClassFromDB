@@ -251,7 +251,7 @@ Partial Class frmGenCode
         'HTMLDesignerToolStripMenuItem
         '
         Me.HTMLDesignerToolStripMenuItem.Name = "HTMLDesignerToolStripMenuItem"
-        Me.HTMLDesignerToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.HTMLDesignerToolStripMenuItem.Size = New System.Drawing.Size(155, 22)
         Me.HTMLDesignerToolStripMenuItem.Text = "HTML Designer"
         '
         'frmGenCode

@@ -144,7 +144,7 @@ using System.Data;
 using System.Data.SqlClient;
 namespace Models 
 {
-    public class " + txtClassName.Text + @" : ITableInterface
+    public class " + txtClassName.Text + @"
     {
 " + strField + @"        
         public " + txtClassName.Text + @"()
@@ -189,7 +189,7 @@ namespace Models
             List<" + txtClassName.Text + @"> lst = new List<" + txtClassName.Text + @">();
             try
             {
-                using (SqlConnection conn = new SqlConnection(Properties.Settings.Default." + txtConnectUse.Text + @"))
+                using (SqlConnection conn = new SqlConnection(" + txtConnectUse.Text + @"))
                 {
                     conn.Open();
                     using (SqlDataReader reader = new SqlCommand(GetSQLSelect(), conn).ExecuteReader())
@@ -234,7 +234,7 @@ namespace Models
             bool success;
             try
             {
-                using (SqlConnection conn = new SqlConnection(Properties.Settings.Default." + txtConnectUse.Text + @"))
+                using (SqlConnection conn = new SqlConnection(" + txtConnectUse.Text + @"))
                 {
                     conn.Open();
                     string sql = GetSQLDelete();
@@ -258,7 +258,7 @@ namespace Models
             string msg="""";
             try
             {
-                using (SqlConnection conn = new SqlConnection(Properties.Settings.Default." + txtConnectUse.Text + @"))
+                using (SqlConnection conn = new SqlConnection(" + txtConnectUse.Text + @"))
                 {
                     conn.Open();
                     string sql = GetSQLSelect();
@@ -337,60 +337,46 @@ namespace Models
     //Controllers And Methods
     public ActionResult " + txtClassName.Text+@"()
     {            
-        if(IsLogin) 
-        {
-            ViewBag.DataList = new "+txtClassName.Text+ @"().Read();        
-        }
-        return GetView('" + txtClassName.Text +@"');
+        ViewBag.DataList = new "+txtClassName.Text+ @"().Read();        
+        return View();
     }
-    public JsonResult Get" + txtClassName.Text+@"()
+    public ActionResult Get" + txtClassName.Text+@"()
     {
-        if(IsLogin)
+        var v"+txtKey.Text+@" = Request.QueryString[""" + txtKey.Text +@"""] == null ? """" : Request.QueryString[""" + txtKey.Text+@"""].ToString();
+        "+ (chkItemNo.Checked ? @"var vItemNo=Request.QueryString[""ItemNo""] == null ? 0 : Convert.ToInt32(Request.QueryString[""ItemNo""].ToString());":"") +@"
+        var data = new "+ txtClassName.Text+@"
         {
-            var v"+txtKey.Text+@" = Request.QueryString[""" + txtKey.Text +@"""] == null ? """" : Request.QueryString[""" + txtKey.Text+@"""].ToString();
-            "+ (chkItemNo.Checked ? @"var vItemNo=Request.QueryString[""ItemNo""] == null ? 0 : Convert.ToInt32(Request.QueryString[""ItemNo""].ToString());":"") +@"
-            var data = new "+ txtClassName.Text+@"
-            {
-                "+txtKey.Text+@" = v"+txtKey.Text+ @"
-                "+ (chkItemNo.Checked ? @",ItemNo=vItemNo" : "") + @"
-            };
-            return GetJson(data.Read());
-        }
-        return GetJson(null);
+            "+txtKey.Text+@" = v"+txtKey.Text+ @"
+            "+ (chkItemNo.Checked ? @",ItemNo=vItemNo" : "") + @"
+        };
+        var json=JsonConvert.SerializeObject(data.Read());
+        return Content(json,""text/json"");
     }
     [HttpPost]
-    public ActionResult Set"+txtClassName.Text+@"("+txtClassName.Text+@" data)
+    public ActionResult Set" + txtClassName.Text+@"("+txtClassName.Text+@" data)
     {
-        if(IsLogin)
-        {
-            if(data."+ (chkItemNo.Checked? "ItemNo==0" : txtKey.Text +@"==null") + @") {
-                data.AddNew();
-            }
-            string msg=data.Update();
-            return GetContent(msg);
+        if(data."+ (chkItemNo.Checked? "ItemNo==0" : txtKey.Text +@"==null") + @") {
+            data.AddNew();
         }
-        return GetContent("");
+        string msg=data.Update();
+        return Content(msg,""text/json"");
     }
     public ContentResult Del" + txtClassName.Text+@"()
     {
-        if(IsLogin)
+        string html = ""No Data To Delete"";
+        if (Request.QueryString["""+txtKey.Text+@"""] != null)
         {
-            string html = ""No Data To Delete"";
-            if (Request.QueryString["""+txtKey.Text+@"""] != null)
+            var data = new "+txtClassName.Text+@"
             {
-                var data = new "+txtClassName.Text+@"
-                {
-                    "+txtKey.Text+@" = Request.QueryString["""+txtKey.Text+@"""].ToString(),
-                    "+ (chkItemNo.Checked ? @"ItemNo=Convert.ToInt32(Request.QueryString[""ItemNo""].ToString())" : "") + @"
-                };
-                if (data.Delete() == true)
-                {
-                    html = ""Delete "" + data."+txtKey.Text + (chkItemNo.Checked ? @"+""#""+ data.ItemNo " : "") + @" + "" Complete"";
-                }
-            }            
-            return GetContent(html);
-        }
-        return GetContent("");
+                "+txtKey.Text+@" = Request.QueryString["""+txtKey.Text+@"""].ToString(),
+                "+ (chkItemNo.Checked ? @"ItemNo=Convert.ToInt32(Request.QueryString[""ItemNo""].ToString())" : "") + @"
+            };
+            if (data.Delete() == true)
+            {
+                html = ""Delete "" + data."+txtKey.Text + (chkItemNo.Checked ? @"+""#""+ data.ItemNo " : "") + @" + "" Complete"";
+            }
+        }            
+        return Content(html,""text/json"");
     }
 ";
             return strAll;
@@ -407,25 +393,18 @@ namespace Models
             int cols = 0;
             foreach (DataColumn dc in tb.Columns)
             {
-                if (cols == 0 || (cols % 2) == 0)
-                {
-                    if (cols > 0)
-                    {
-                        strAll += "</div>\r\n";
-                    }
-                    strAll += @"<div class=""row"">"+ "\r\n";
-                }
-                strListH += "\r\n           <th>" + dc.ColumnName+ "</th>";
-                if (txtKey.Text == dc.ColumnName)
+                strListH += "\r\n           <th>" + dc.ColumnName + "</th>";
+                                if (txtKey.Text == dc.ColumnName)
                 {
                     strListD += "\r\n                   "+@"<td><a onclick=""SetData('@item."+ dc.ColumnName + (chkItemNo.Checked ? "',@item.ItemNo":"'")+ @")"">" + "@item." + dc.ColumnName + "</a></td>";
                 } else
                 {
                     strListD += "\r\n                   <td>@item." + dc.ColumnName + "</td>";
                 }
+                strAll += @"<div class=""row"">" + "\r\n";
                 strAll += @"    <div class=""col-sm-6"">" + "\r\n";
-                strAll += @"        " + dc.ColumnName + @"<br/>" + "\r\n";
-                strAll += @"        <div style=""display:flex"">" + "\r\n";
+                strAll += @"        " + dc.ColumnName + @"</div>" + "\r\n";
+                strAll += @"    <div class=""col-sm-6"">" + "\r\n";
 
                 string strType = dc.DataType.FullName.ToString().Replace("System.", "");
                 switch (strType)
@@ -447,16 +426,12 @@ namespace Models
                         strClear += "       $('#txt" + dc.ColumnName + @"').val('');" + "\r\n";
                         break;
                 }
-                strAll += @"        </div>" + "\r\n";
                 strAll += @"    </div>" + "\r\n";
+                strAll += @"</div>" + "\r\n";
 
                 strSave += "            " + dc.ColumnName + ": $('#txt" + dc.ColumnName + "').val(),\r\n";
                 strLoad += "                $('#txt" + dc.ColumnName + @"').val(data."+ dc.ColumnName +");" + "\r\n";
                 cols += 1;
-            }
-            if (cols > 0)
-            {
-                strAll += @"</div>" + "\r\n";
             }
             strListH += "\r\n       </tr>\r\n   </thead>\r\n";
             strListH += @"
@@ -515,7 +490,7 @@ namespace Models
             contentType: ""application/json"",
             data: jsonText,
             success: function(response) {
-                if (response !== "")
+                if (response !== """")
                 {
                     alert(response);
                     window.location.reload();
@@ -530,8 +505,10 @@ namespace Models
             strAll += strListH;
             strAll += @"
 <script type=""text/javascript"">
-    $('#txt"+ (chkItemNo.Checked ? "ItemNo": txtKey.Text) +@"').on('change',function(){
-        ReadData();
+    $('#txt"+ (chkItemNo.Checked ? "ItemNo": txtKey.Text) +@"').on('keydown',function(e){
+        if(e.which==13){
+            ReadData();
+        }
     });
     function SetData(id"+ (chkItemNo.Checked? ",no":"")+@") {
         $('#txt"+ txtKey.Text +@"').val(id);
@@ -544,7 +521,7 @@ namespace Models
     function DeleteData(){
         let v" + txtKey.Text + @"=$('#txt" + txtKey.Text + @"').val();
         $.get('/" + txtController.Text + @"/Del" + txtClassName.Text + @"?" + txtKey.Text + @"=' + v" + txtKey.Text + @").done(function(r){
-            if(r!=="") {
+            if(r!=="""") {
                 alert(r);
                 window.location.reload();
             }

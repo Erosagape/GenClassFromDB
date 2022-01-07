@@ -53,7 +53,7 @@ namespace TestMySQL
             if (CDB.IsConnected)
             {
                 DataTable dt = CDB.GetDataTable(textBox1.Text);
-                string result = CDB.ReadStructureCS(dt,textBox3.Text,textBox5.Text,textBox4.Text,checkBox1.Checked,false);
+                string result = CDB.ReadStructureCS(dt,textBox3.Text,textBox5.Text,textBox4.Text,checkBox1.Checked,checkBox2.Checked);
                 Clipboard.SetText(result, TextDataFormat.UnicodeText);
                 MessageBox.Show("Complete,Please Paste on IDE or Notepad");
             }
