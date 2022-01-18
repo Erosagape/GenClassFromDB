@@ -387,24 +387,26 @@ namespace Models
             string strClear = "";
             string strLoad = "";
             string strSave = "";
-            string strListH = @"<table class=""table table-responsive"">";
+            string strListH = @"<div style=""overflow-x:auto"">" + "\r\n"+ @"<table class=""table table-responsive"">";
             string strListD = "";
-            strListH += "\r\n   <thead>\r\n        <tr>";
+            strListH += "\r\n   <thead>\r\n        <tr>\r\n<th>#</th>";
             int cols = 0;
             foreach (DataColumn dc in tb.Columns)
             {
                 strListH += "\r\n           <th>" + dc.ColumnName + "</th>";
                                 if (txtKey.Text == dc.ColumnName)
                 {
-                    strListD += "\r\n                   "+@"<td><a onclick=""SetData('@item."+ dc.ColumnName + (chkItemNo.Checked ? "',@item.ItemNo":"'")+ @")"">" + "@item." + dc.ColumnName + "</a></td>";
-                } else
+                    strListD += "\r\n                   "+@"<td><button class=""btn btn-warning"" onclick=""SetData('@item."+ dc.ColumnName + (chkItemNo.Checked ? "',@item.ItemNo":"'")+ @")"">Edit</button></td>";
+                    strListD += "\r\n                   <td>@item." + dc.ColumnName + "</td>";
+                } 
+                else
                 {
                     strListD += "\r\n                   <td>@item." + dc.ColumnName + "</td>";
                 }
                 strAll += @"<div class=""row"">" + "\r\n";
-                strAll += @"    <div class=""col-sm-6"">" + "\r\n";
+                strAll += @"    <div class=""col-sm-4"">" + "\r\n";
                 strAll += @"        " + dc.ColumnName + @"</div>" + "\r\n";
-                strAll += @"    <div class=""col-sm-6"">" + "\r\n";
+                strAll += @"    <div class=""col-sm-8"">" + "\r\n";
 
                 string strType = dc.DataType.FullName.ToString().Replace("System.", "");
                 switch (strType)
@@ -444,7 +446,7 @@ namespace Models
         }
     </tbody>
 ";
-            strListH += "</table>\r\n";
+            strListH += "</table>\r\n</div>\r\n";
             strAll += @"
 <div style=""display:flex"">
     <div>
@@ -467,7 +469,7 @@ namespace Models
     function ReadData(){
         let v"+txtKey.Text+@"=$('#txt"+txtKey.Text+@"').val();  
         " + (chkItemNo.Checked? "let vItemNo=$('#txtItemNo').val();":"") + @"
-        $.get('/" + txtController.Text + @"/Get"+ txtClassName.Text+@"?" + txtKey.Text+@"=' + v"+txtKey.Text+ (chkItemNo.Checked ? "&ItemNo='+ vItemNo":"")+ @").done(function(r){
+        $.get('/" + txtController.Text + @"/Get"+ txtClassName.Text+@"?" + txtKey.Text+@"=' + v"+txtKey.Text+ (chkItemNo.Checked ? "+'&ItemNo='+ vItemNo":"")+ @").done(function(r){
             if(r.length>0){    
                 let data=r[0];
 " + strLoad+ @"
