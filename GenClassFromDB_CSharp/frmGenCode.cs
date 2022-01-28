@@ -359,9 +359,9 @@ namespace Models
             data.AddNew();
         }
         string msg=data.Update();
-        return Content(msg,""text/json"");
+        return Content(msg,""text/html"");
     }
-    public ContentResult Del" + txtClassName.Text+@"()
+    public ActionResult Del" + txtClassName.Text+@"()
     {
         string html = ""No Data To Delete"";
         if (Request.QueryString["""+txtKey.Text+@"""] != null)
@@ -376,7 +376,7 @@ namespace Models
                 html = ""Delete "" + data."+txtKey.Text + (chkItemNo.Checked ? @"+""#""+ data.ItemNo " : "") + @" + "" Complete"";
             }
         }            
-        return Content(html,""text/json"");
+        return Content(html,""text/html"");
     }
 ";
             return strAll;
@@ -414,18 +414,18 @@ namespace Models
                     case "Date":
                     case "DateTime":
                         strAll += @"            <input type=""date"" class=""form-control"" id=""txt" + dc.ColumnName + @""" value="""" />" + "\r\n";
-                        strClear += "       $('#txt" + dc.ColumnName + @"').val(new Date());" + "\r\n";
+                        strClear += "        $('#txt" + dc.ColumnName + @"').val(new Date());" + "\r\n";
                         break;
                     case "Int32":
                     case "Int16":
                     case "Integer":
                     case "Double":
                         strAll += @"            <input type=""number"" class=""form-control"" id=""txt" + dc.ColumnName + @""" value="""" />" + "\r\n";
-                        strClear += "       $('#txt" + dc.ColumnName + @"').val('0');" + "\r\n";
+                        strClear += "        $('#txt" + dc.ColumnName + @"').val('0');" + "\r\n";
                         break;
                     default:
                         strAll += @"            <input type=""text"" class=""form-control"" id=""txt" + dc.ColumnName + @""" value="""" />" + "\r\n";
-                        strClear += "       $('#txt" + dc.ColumnName + @"').val('');" + "\r\n";
+                        strClear += "        $('#txt" + dc.ColumnName + @"').val('');" + "\r\n";
                         break;
                 }
                 strAll += @"    </div>" + "\r\n";
@@ -450,19 +450,21 @@ namespace Models
             strAll += @"
 <div style=""display:flex"">
     <div>
-        <input type=""button"" id=""btnClear"" class=""btn btn-default"" value=""Clear"" onclick=""ClearData()""/>
+        <input type=""button"" id=""btnClear"" class=""btn btn-default"" value=""Clear"" onclick=""ClearData()"" />
     </div>
     <div>
-        <input type=""button"" id=""btnSave"" class=""btn btn-success"" value=""Save"" onclick=""SaveData()"" />
+        <input type=""button"" id=""btnSave"" class=""btn btn-success"" value=""Save"" onclick=""SaveData()"" disabled />
     </div>
     <div>
-        <input type=""button"" id=""btnDelete"" class=""btn btn-danger"" value=""Delete"" onclick=""DeleteData()"" />
+        <input type=""button"" id=""btnDelete"" class=""btn btn-danger"" value=""Delete"" onclick=""DeleteData()"" disabled />
     </div>
 </div>
 ";
             strClear = @"
     function ClearData(){
-" + strClear+@"
+" + strClear+ @"
+        $('#btnSave').removeAttr('disabled');
+        $('#btnDelete').attr('disabled','disabled');
     }
     ";
                 strLoad = @"
@@ -473,6 +475,8 @@ namespace Models
             if(r.length>0){    
                 let data=r[0];
 " + strLoad+ @"
+                $('#btnSave').removeAttr('disabled');        
+                $('#btnDelete').removeAttr('disabled');
             } else {
                 alert('Data Not Found');
             }
@@ -481,32 +485,27 @@ namespace Models
     ";
                 strSave = @"
     function SaveData(){
+        if(!ValidateData())
+            return;
         let obj={
 "+ strSave+ @"
         }
-        let jsonText = JSON.stringify({ data: obj });
         
-        $.ajax({
-            url: ""@Url.Action(""Set"+txtClassName.Text+@""", """ + txtController.Text + @""")"",
-            type: ""POST"",
-            contentType: ""application/json"",
-            data: jsonText,
-            success: function(response) {
+        $.post(""@Url.Action(""Set"+txtClassName.Text+@""", """ + txtController.Text + @""")"",obj).done(function(response) {
                 if (response !== """")
                 {
                     alert(response);
-                    window.location.reload();
+                    location.reload(true);
                 }
-            },
-            error: function(e) {
+            }).fail(function(e) {
                 alert(e.responseText);
-            }
-        });        
+            });        
     }
 ";
             strAll += strListH;
             strAll += @"
 <script type=""text/javascript"">
+    ClearData();
     $('#txt"+ (chkItemNo.Checked ? "ItemNo": txtKey.Text) +@"').on('keydown',function(e){
         if(e.which==13){
             ReadData();
@@ -523,12 +522,13 @@ namespace Models
     function DeleteData(){
         let v" + txtKey.Text + @"=$('#txt" + txtKey.Text + @"').val();
         $.get('/" + txtController.Text + @"/Del" + txtClassName.Text + @"?" + txtKey.Text + @"=' + v" + txtKey.Text + @").done(function(r){
-            if(r!=="""") {
-                alert(r);
-                window.location.reload();
-            }
+            alert(r);
+            location.reload(true);
         });
     }
+    function ValidateData(){
+        return true;
+    }    
 </script>
 ";
             return strAll;
