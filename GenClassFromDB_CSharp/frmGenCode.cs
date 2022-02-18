@@ -387,6 +387,7 @@ namespace Models
             string strClear = "";
             string strLoad = "";
             string strSave = "";
+            string strValidate = "";
             string strListH = @"<div style=""overflow-x:auto"">" + "\r\n"+ @"<table class=""table table-responsive"">";
             string strListD = "";
             strListH += "\r\n   <thead>\r\n        <tr>\r\n<th>#</th>";
@@ -397,15 +398,20 @@ namespace Models
                                 if (txtKey.Text == dc.ColumnName)
                 {
                     strListD += "\r\n                   "+@"<td><button class=""btn btn-warning"" onclick=""SetData('@item."+ dc.ColumnName + (chkItemNo.Checked ? "',@item.ItemNo":"'")+ @")"">Edit</button></td>";
-                    strListD += "\r\n                   <td>@item." + dc.ColumnName + "</td>";
                 } 
-                else
+                if(dc.DataType.FullName.ToString().Replace("System.", "") == "DateTime")
+                {
+                    strListD += "\r\n                   <td>@Main.ShowDate(item." + dc.ColumnName + @")</td>";
+                    strLoad += "        $('#txt" + dc.ColumnName + @"').val(CDateEN(data." + dc.ColumnName + "));" + "\r\n";
+                } else
                 {
                     strListD += "\r\n                   <td>@item." + dc.ColumnName + "</td>";
+                    strLoad += "        $('#txt" + dc.ColumnName + @"').val(data." + dc.ColumnName + ");" + "\r\n";
                 }
                 strAll += @"<div class=""row"">" + "\r\n";
                 strAll += @"    <div class=""col-sm-4"">" + "\r\n";
-                strAll += @"        " + dc.ColumnName + @"</div>" + "\r\n";
+                strAll += @"        <label id=""lbl"+dc.ColumnName+@""">" + dc.ColumnName + @"</label>" + "\r\n";
+                strAll += @"    </div>" + "\r\n";
                 strAll += @"    <div class=""col-sm-8"">" + "\r\n";
 
                 string strType = dc.DataType.FullName.ToString().Replace("System.", "");
@@ -414,14 +420,27 @@ namespace Models
                     case "Date":
                     case "DateTime":
                         strAll += @"            <input type=""date"" class=""form-control"" id=""txt" + dc.ColumnName + @""" value="""" />" + "\r\n";
-                        strClear += "        $('#txt" + dc.ColumnName + @"').val(new Date());" + "\r\n";
+                        if(dc.ColumnName.ToLower().Equals("lastupdate")|| dc.ColumnName.ToLower().Equals("createdate"))
+                        {
+                            strClear += "        $('#txt" + dc.ColumnName + @"').val(CDateEN(GetToday()));" + "\r\n";
+                        } else
+                        {
+                            strClear += "        $('#txt" + dc.ColumnName + @"').val(new Date());" + "\r\n";
+                        }
                         break;
                     case "Int32":
                     case "Int16":
                     case "Integer":
+                    case "Boolean":
                     case "Double":
                         strAll += @"            <input type=""number"" class=""form-control"" id=""txt" + dc.ColumnName + @""" value="""" />" + "\r\n";
-                        strClear += "        $('#txt" + dc.ColumnName + @"').val('0');" + "\r\n";
+                        if (dc.ColumnName.ToLower().Contains("status"))
+                        {
+                            strClear += "        $('#txt" + dc.ColumnName + @"').val('1');" + "\r\n";
+                        } else
+                        {
+                            strClear += "        $('#txt" + dc.ColumnName + @"').val('0');" + "\r\n";
+                        }
                         break;
                     default:
                         strAll += @"            <input type=""text"" class=""form-control"" id=""txt" + dc.ColumnName + @""" value="""" />" + "\r\n";
@@ -431,8 +450,13 @@ namespace Models
                 strAll += @"    </div>" + "\r\n";
                 strAll += @"</div>" + "\r\n";
 
-                strSave += "            " + dc.ColumnName + ": $('#txt" + dc.ColumnName + "').val(),\r\n";
-                strLoad += "                $('#txt" + dc.ColumnName + @"').val(data."+ dc.ColumnName +");" + "\r\n";
+                strSave += "            " + dc.ColumnName + ": $('#txt" + dc.ColumnName + "').val(),\r\n";                
+
+                strValidate += "        if($('#txt" + dc.ColumnName + "').val()=='') {\r\n";
+                strValidate += "            alert('" + dc.ColumnName + " must be entered');\r\n";
+                strValidate += "            $('#txt" + dc.ColumnName + "').focus();\r\n";
+                strValidate += "            return false;\r\n";
+                strValidate += "        }\r\n";
                 cols += 1;
             }
             strListH += "\r\n       </tr>\r\n   </thead>\r\n";
@@ -465,6 +489,7 @@ namespace Models
 " + strClear+ @"
         $('#btnSave').removeAttr('disabled');
         $('#btnDelete').attr('disabled','disabled');
+        delStorage('twt" + txtClassName.Text.ToLower() + @"');
     }
     ";
                 strLoad = @"
@@ -474,24 +499,28 @@ namespace Models
         $.get('/" + txtController.Text + @"/Get"+ txtClassName.Text+@"?" + txtKey.Text+@"=' + v"+txtKey.Text+ (chkItemNo.Checked ? "+'&ItemNo='+ vItemNo":"")+ @").done(function(r){
             if(r.length>0){    
                 let data=r[0];
-" + strLoad+ @"
-                $('#btnSave').removeAttr('disabled');        
-                $('#btnDelete').removeAttr('disabled');
+                LoadData(data);
             } else {
                 alert('Data Not Found');
             }
         });
+    }
+    function LoadData(data){
+" + strLoad + @"
+        $('#btnSave').removeAttr('disabled');        
+        $('#btnDelete').removeAttr('disabled');
+        setStorage('twt" + txtClassName.Text.ToLower() + @"',JSON.stringify(data));
     }
     ";
                 strSave = @"
     function SaveData(){
         if(!ValidateData())
             return;
-        let obj={
+        let data={
 "+ strSave+ @"
         }
-        
-        $.post(""@Url.Action(""Set"+txtClassName.Text+@""", """ + txtController.Text + @""")"",obj).done(function(response) {
+        setStorage('twt" + txtClassName.Text.ToLower() + @"',JSON.stringify(data));
+        $.post('/" + txtController.Text + @"/Set" + txtClassName.Text+@"',data).done(function(response) {
                 if (response !== """")
                 {
                     alert(response);
@@ -505,8 +534,14 @@ namespace Models
             strAll += strListH;
             strAll += @"
 <script type=""text/javascript"">
-    ClearData();
-    $('#txt"+ (chkItemNo.Checked ? "ItemNo": txtKey.Text) +@"').on('keydown',function(e){
+    let saveObj = getStorage('twt"+txtClassName.Text.ToLower()+@"', '');
+    if (saveObj == '') {
+        ClearData();
+    } else {
+        let data = JSON.parse(saveObj);
+        LoadData(data);
+    }
+    $('#txt" + (chkItemNo.Checked ? "ItemNo": txtKey.Text) +@"').on('keydown',function(e){
         if(e.which==13){
             ReadData();
         }
@@ -527,6 +562,7 @@ namespace Models
         });
     }
     function ValidateData(){
+" + strValidate+@"
         return true;
     }    
 </script>
