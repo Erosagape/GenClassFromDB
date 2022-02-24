@@ -335,9 +335,9 @@ namespace Models
         data.Update();
     }
     //Controllers And Methods
-    public ActionResult " + txtClassName.Text+@"()
+    public ActionResult " + txtClassName.Text+ @"()
     {            
-        ViewBag.DataList = new "+txtClassName.Text+ @"().Read();        
+        ViewBag.Data" + (chkDetail.Checked ? "Detail" : "Header") + @" = new " + txtClassName.Text+ @"().Read();        
         return View();
     }
     public ActionResult Get" + txtClassName.Text+@"()
@@ -397,7 +397,7 @@ namespace Models
                 strListH += "\r\n           <th>" + dc.ColumnName + "</th>";
                                 if (txtKey.Text == dc.ColumnName)
                 {
-                    strListD += "\r\n                   "+@"<td><button class=""btn btn-warning"" onclick=""SetData('@item."+ dc.ColumnName + (chkItemNo.Checked ? "',@item.ItemNo":"'")+ @")"">Edit</button></td>";
+                    strListD += "\r\n                   "+ @"<td><button class=""btn btn-warning"" onclick=""Set" + (chkDetail.Checked ? "Detail" : "Data") + @"('@item." + dc.ColumnName + (chkItemNo.Checked ? "',@item.ItemNo":"'")+ @")"">Edit</button></td>";
                 } 
                 if(dc.DataType.FullName.ToString().Replace("System.", "") == "DateTime")
                 {
@@ -408,11 +408,14 @@ namespace Models
                     strListD += "\r\n                   <td>@item." + dc.ColumnName + "</td>";
                     strLoad += "        $('#txt" + dc.ColumnName + @"').val(data." + dc.ColumnName + ");" + "\r\n";
                 }
-                strAll += @"<div class=""row"">" + "\r\n";
-                strAll += @"    <div class=""col-sm-4"">" + "\r\n";
+                if (cols == 0 || cols % 2 == 0)
+                {
+                    strAll += @"<div class=""row"">" + "\r\n";
+                }
+                strAll += @"    <div class=""col-sm-2"">" + "\r\n";
                 strAll += @"        <label id=""lbl"+dc.ColumnName+@""">" + dc.ColumnName + @"</label>" + "\r\n";
                 strAll += @"    </div>" + "\r\n";
-                strAll += @"    <div class=""col-sm-8"">" + "\r\n";
+                strAll += @"    <div class=""col-sm-4"">" + "\r\n";
 
                 string strType = dc.DataType.FullName.ToString().Replace("System.", "");
                 switch (strType)
@@ -448,8 +451,10 @@ namespace Models
                         break;
                 }
                 strAll += @"    </div>" + "\r\n";
-                strAll += @"</div>" + "\r\n";
-
+                if ((cols + 1) % 2 == 0||(cols+1)==tb.Columns.Count)
+                {
+                    strAll += @"</div>" + "\r\n";
+                }
                 strSave += "            " + dc.ColumnName + ": $('#txt" + dc.ColumnName + "').val(),\r\n";                
 
                 strValidate += "        if($('#txt" + dc.ColumnName + "').val()=='') {\r\n";
@@ -462,7 +467,7 @@ namespace Models
             strListH += "\r\n       </tr>\r\n   </thead>\r\n";
             strListH += @"
     <tbody>
-        @foreach (var item in ViewBag.DataList)
+        @foreach (var item in ViewBag.Data"+(chkDetail.Checked?"Detail":"Header")+@")
         {
             <tr>
 "+ strListD + @"
@@ -474,50 +479,50 @@ namespace Models
             strAll += @"
 <div style=""display:flex"">
     <div>
-        <input type=""button"" id=""btnClear"" class=""btn btn-default"" value=""Clear"" onclick=""ClearData()"" />
+        <input type=""button"" id=""btnClear"+(chkDetail.Checked?"D":"")+ @""" class=""btn btn-default"" value=""Clear"" onclick=""Clear" + (chkDetail.Checked ? "Detail" : "Data") + @"()"" />
     </div>
     <div>
-        <input type=""button"" id=""btnSave"" class=""btn btn-success"" value=""Save"" onclick=""SaveData()"" disabled />
+        <input type=""button"" id=""btnSave" + (chkDetail.Checked ? "D" : "") + @""" class=""btn btn-success"" value=""Save"" onclick=""Save" + (chkDetail.Checked ? "Detail" : "Data") + @"()"" disabled />
     </div>
     <div>
-        <input type=""button"" id=""btnDelete"" class=""btn btn-danger"" value=""Delete"" onclick=""DeleteData()"" disabled />
+        <input type=""button"" id=""btnDelete" + (chkDetail.Checked ? "D" : "") + @""" class=""btn btn-danger"" value=""Delete"" onclick=""Delete" + (chkDetail.Checked ? "Detail" : "Data") + @"()"" disabled />
     </div>
 </div>
 ";
             strClear = @"
-    function ClearData(){
+    function Clear" + (chkDetail.Checked ? "Detail" : "Data") + @"(){
 " + strClear+ @"
-        $('#btnSave').removeAttr('disabled');
-        $('#btnDelete').attr('disabled','disabled');
+        $('#btnSave" + (chkDetail.Checked ? "D" : "") + @"').removeAttr('disabled');
+        $('#btnDelete" + (chkDetail.Checked ? "D" : "") + @"').attr('disabled','disabled');
         delStorage('twt" + txtClassName.Text.ToLower() + @"');
     }
     ";
                 strLoad = @"
-    function ReadData(){
-        let v"+txtKey.Text+@"=$('#txt"+txtKey.Text+@"').val();  
+    function Read" + (chkDetail.Checked ? "Detail" : "Data") + @"(){
+        let v" + txtKey.Text+@"=$('#txt"+txtKey.Text+@"').val();  
         " + (chkItemNo.Checked? "let vItemNo=$('#txtItemNo').val();":"") + @"
         $.get('/" + txtController.Text + @"/Get"+ txtClassName.Text+@"?" + txtKey.Text+@"=' + v"+txtKey.Text+ (chkItemNo.Checked ? "+'&ItemNo='+ vItemNo":"")+ @").done(function(r){
             if(r.length>0){    
                 let data=r[0];
-                LoadData(data);
+                Load" + (chkDetail.Checked ? "Detail" : "Data") + @"(data);
             } else {
                 alert('Data Not Found');
             }
         });
     }
-    function LoadData(data){
+    function Load" + (chkDetail.Checked ? "Detail" : "Data") + @"(data){
 " + strLoad + @"
-        $('#btnSave').removeAttr('disabled');        
-        $('#btnDelete').removeAttr('disabled');
+        $('#btnSave" + (chkDetail.Checked ? "D" : "") + @"').removeAttr('disabled');        
+        $('#btnDelete" + (chkDetail.Checked ? "D" : "") + @"').removeAttr('disabled');
         setStorage('twt" + txtClassName.Text.ToLower() + @"',JSON.stringify(data));
     }
     ";
                 strSave = @"
-    function SaveData(){
-        if(!ValidateData())
+    function Save" + (chkDetail.Checked ? "Detail" : "Data") + @"(){
+        if(!Validate" + (chkDetail.Checked ? "Detail" : "Data") + @"())
             return;
         let data={
-"+ strSave+ @"
+" + strSave+ @"
         }
         setStorage('twt" + txtClassName.Text.ToLower() + @"',JSON.stringify(data));
         $.post('/" + txtController.Text + @"/Set" + txtClassName.Text+@"',data).done(function(response) {
@@ -534,34 +539,34 @@ namespace Models
             strAll += strListH;
             strAll += @"
 <script type=""text/javascript"">
-    let saveObj = getStorage('twt"+txtClassName.Text.ToLower()+@"', '');
-    if (saveObj == '') {
-        ClearData();
+    let saveObj" + (chkDetail.Checked ? "D" : "") + @" = getStorage('twt" + txtClassName.Text.ToLower()+ @"', '');
+    if (saveObj" + (chkDetail.Checked ? "D" : "") + @" == '') {
+        Clear" + (chkDetail.Checked ? "Detail" : "Data") + @"();
     } else {
         let data = JSON.parse(saveObj);
-        LoadData(data);
+        Load" + (chkDetail.Checked ? "Detail" : "Data") + @"(data);
     }
-    $('#txt" + (chkItemNo.Checked ? "ItemNo": txtKey.Text) +@"').on('keydown',function(e){
+    $('#txt" + (chkItemNo.Checked ? "ItemNo": txtKey.Text) + @"').on('keydown',function(e){
         if(e.which==13){
-            ReadData();
+            Read" + (chkDetail.Checked ? "Detail" : "Data") + @"();
         }
     });
-    function SetData(id"+ (chkItemNo.Checked? ",no":"")+@") {
+    function Set" + (chkDetail.Checked ? "Detail" : "Data") + @"(id" + (chkItemNo.Checked? ",no":"")+@") {
         $('#txt"+ txtKey.Text +@"').val(id);
         " + (chkItemNo.Checked ? "$('#txtItemNo').val(no);":"")+ @"
-        ReadData();
+        Read" + (chkDetail.Checked ? "Detail" : "Data") + @"();
     }
     " + strClear+ @"
     " + strLoad + @"
     " + strSave + @"
-    function DeleteData(){
+    function Delete" + (chkDetail.Checked ? "Detail" : "Data") + @"(){
         let v" + txtKey.Text + @"=$('#txt" + txtKey.Text + @"').val();
         $.get('/" + txtController.Text + @"/Del" + txtClassName.Text + @"?" + txtKey.Text + @"=' + v" + txtKey.Text + @").done(function(r){
             alert(r);
             location.reload(true);
         });
     }
-    function ValidateData(){
+    function Validate" + (chkDetail.Checked ? "Detail" : "Data") + @"(){
 " + strValidate+@"
         return true;
     }    

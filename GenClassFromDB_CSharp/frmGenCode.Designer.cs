@@ -47,6 +47,7 @@
             this.txtController = new System.Windows.Forms.TextBox();
             this.txtTable = new System.Windows.Forms.ComboBox();
             this.chkItemNo = new System.Windows.Forms.CheckBox();
+            this.chkDetail = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -219,11 +220,22 @@
             this.chkItemNo.Text = "ItemNo";
             this.chkItemNo.UseVisualStyleBackColor = true;
             // 
+            // chkDetail
+            // 
+            this.chkDetail.AutoSize = true;
+            this.chkDetail.Location = new System.Drawing.Point(378, 183);
+            this.chkDetail.Name = "chkDetail";
+            this.chkDetail.Size = new System.Drawing.Size(64, 17);
+            this.chkDetail.TabIndex = 31;
+            this.chkDetail.Text = "Is Detail";
+            this.chkDetail.UseVisualStyleBackColor = true;
+            // 
             // frmGenCode
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.chkDetail);
             this.Controls.Add(this.chkItemNo);
             this.Controls.Add(this.txtTable);
             this.Controls.Add(this.txtController);
@@ -273,6 +285,7 @@
         internal System.Windows.Forms.TextBox txtController;
         private System.Windows.Forms.ComboBox txtTable;
         private System.Windows.Forms.CheckBox chkItemNo;
+        private System.Windows.Forms.CheckBox chkDetail;
     }
 }
 
